@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishLens — {{ analysis.details.subject }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f1923;
+            --bg-secondary: #162130;
+            --bg-card: #1a2a3a;
+            --bg-hover: #1e3248;
+            --bg-input: #111d2a;
+            --border: #2a3f55;
+            --border-light: #1e3040;
+            --text-primary: #f0f4f8;
+            --text-secondary: #b0bec9;
+            --text-muted: #7e95a9;
+            --accent: #5b9ef6;
+            --accent-hover: #2563eb;
+            --accent-glow: rgba(59, 130, 246, 0.1);
+            --danger: #f87171;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --danger-border: rgba(239, 68, 68, 0.3);
+            --success: #4ade80;
+            --success-bg: rgba(34, 197, 94, 0.12);
+            --success-border: rgba(34, 197, 94, 0.3);
+            --warning: #fbbf24;
+            --warning-bg: rgba(245, 158, 11, 0.12);
+            --warning-border: rgba(245, 158, 11, 0.3);
+            --neutral-bg: rgba(139, 145, 152, 0.12);
+            --neutral-border: rgba(139, 145, 152, 0.3);
+            --mono: 'IBM Plex Mono', monospace;
+            --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+
+        .logo span { color: var(--accent); }
+
+        .nav-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .nav-breadcrumb a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Layout */
+        .page-header {
+            padding: 20px 24px 0;
+            background: var(--bg-secondary);
+        }
+
+        .subject-line {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            padding: 0 24px;
+            position: sticky;
+            top: 52px;
+            z-index: 99;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .tab:hover { color: var(--text-primary); }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .tab-badge.success { background: var(--success); }
+        .tab-badge.danger { background: var(--danger); }
+        .tab-badge.warning { background: var(--warning); }
+
+        /* Content area */
+        .content-wrapper {
+            display: flex;
+            min-height: calc(100vh - 140px);
+        }
+
+        .panel-left {
+            flex: 1;
+            min-width: 0;
+            border-right: 1px solid var(--border);
+        }
+
+        .panel-right {
+            width: 540px;
+            min-width: 540px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-content {
+            padding: 0;
+        }
+
+        /* Tab content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Detail rows */
+        .detail-table {
+            width: 100%;
+        }
+
+        .detail-row {
+            display: flex;
+            border-bottom: 1px solid var(--border-light);
+            min-height: 40px;
+        }
+
+        .detail-row:hover { background: var(--bg-hover); }
+
+        .detail-label {
+            width: 160px;
+            min-width: 160px;
+            padding: 10px 16px 10px 24px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detail-value {
+            flex: 1;
+            padding: 10px 16px;
+            font-family: var(--mono);
+            font-size: 14px;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-value.sans {
+            font-family: var(--sans);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .badge-pass {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .badge-fail {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
+        }
+
+        .badge-warn {
+            background: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
+
+        .badge-neutral {
+            background: var(--neutral-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--neutral-border);
+        }
+
+        .badge-macro {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
+            font-size: 12px;
+        }
+
+        /* Flag icon */
+        .flag-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 10px;
+        }
+
+        .flag-icon.success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+        .flag-icon.danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+        .flag-icon.warning { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+
+        /* Authentication section */
+        .auth-section {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .auth-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .auth-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* URL list */
+        .url-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border-light);
+            font-family: var(--mono);
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .url-item:hover { background: var(--bg-hover); }
+
+        .url-index {
+            color: var(--text-muted);
+            font-size: 12px;
+            min-width: 24px;
+        }
+
+        .url-text {
+            color: var(--accent);
+        }
+
+        /* Attachment card */
+        .attachment-card {
+            margin: 16px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .attachment-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .attachment-body {
+            padding: 0;
+        }
+
+        .attachment-body .detail-row {
+            border-bottom-color: var(--border);
+        }
+
+        .attachment-body .detail-label {
+            padding-left: 16px;
+        }
+
+        /* Transmission timeline */
+        .timeline {
+            padding: 24px;
+        }
+
+        .hop {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 0;
+        }
+
+        .hop-line {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20px;
+            min-width: 20px;
+        }
+
+        .hop-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            border: 2px solid var(--bg-primary);
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        .hop-connector {
+            width: 2px;
+            flex: 1;
+            background: var(--border);
+            min-height: 20px;
+        }
+
+        .hop-content {
+            flex: 1;
+            padding-bottom: 24px;
+        }
+
+        .hop-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 2px;
+        }
+
+        .hop-time {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-family: var(--mono);
+        }
+
+        .hop-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 3px;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .hop-detail-label {
+            color: var(--text-muted);
+            font-size: 13px;
+            min-width: 90px;
+        }
+
+        .hop-detail-value {
+            font-family: var(--mono);
+            font-size: 13px;
+            word-break: break-all;
+        }
+
+        .hop-delay {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            background: var(--bg-card);
+            color: var(--text-muted);
+        }
+
+        .hop-delay.slow {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        /* X-headers */
+        .xheader-row {
+            display: flex;
+            border-bottom: 1px solid var(--border-light);
+            padding: 8px 24px;
+        }
+
+        .xheader-row:hover { background: var(--bg-hover); }
+
+        .xheader-name {
+            min-width: 280px;
+            width: 280px;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding-right: 16px;
+        }
+
+        .xheader-value {
+            flex: 1;
+            font-family: var(--mono);
+            font-size: 13px;
+            word-break: break-all;
+            color: var(--text-primary);
+        }
+
+        .xheader-search {
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .xheader-search input {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: var(--sans);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .xheader-search input:focus {
+            border-color: var(--accent);
+        }
+
+        .xheader-search input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .xheader-count {
+            font-size: 13px;
+            color: var(--text-muted);
+            padding: 8px 24px;
+            text-align: right;
+        }
+
+        /* Body viewer (right panel) */
+        .body-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            padding: 0 16px;
+            position: sticky;
+            top: 0;
+        }
+
+        .body-tab {
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .body-tab:hover { color: var(--text-primary); }
+
+        .body-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .body-content {
+            display: none;
+            padding: 16px;
+            overflow-y: auto;
+            height: calc(100vh - 190px);
+        }
+
+        .body-content.active { display: block; }
+
+        .body-rendered {
+            background: #fff;
+            color: #1a1a1a;
+            padding: 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 200px;
+        }
+
+        .body-rendered img { max-width: 100%; }
+
+        .code-view {
+            font-family: var(--mono);
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #d4d4d4;
+            background: #1e1e2e;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            width: 100%;
+            height: calc(100vh - 230px);
+            resize: none;
+            outline: none;
+            line-height: 1.6;
+        }
+
+        /* Flags summary banner */
+        .flags-banner {
+            padding: 10px 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .flag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .flag-chip.high {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
+        }
+
+        .flag-chip.medium {
+            background: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
+
+        .flag-chip.low {
+            background: var(--neutral-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--neutral-border);
+        }
+
+        .empty-state {
+            padding: 40px 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Copy button */
+        .copy-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--sans);
+            transition: all 0.15s;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* Context panel */
+        .context-panel {
+            margin: 8px 24px 16px;
+            padding: 14px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .context-panel.warning {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+        }
+
+        .context-panel.success {
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+        }
+
+        .context-panel.danger {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+        }
+
+        .context-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .context-title.warning { color: var(--warning); }
+        .context-title.success { color: var(--success); }
+        .context-title.danger { color: var(--danger); }
+
+        .context-detail {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .context-info {
+            color: var(--text-muted);
+            font-size: 13px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .context-info-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="/" class="logo">Phish<span>Lens</span></a>
+            <div class="nav-breadcrumb">
+                <a href="/">Uploads</a>
+                <span>›</span>
+                <span>{{ analysis.details.subject[:50] }}{% if analysis.details.subject|length > 50 %}...{% endif %}</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page header -->
+    <div class="page-header">
+        <h1 class="subject-line">{{ analysis.details.subject }}</h1>
+    </div>
+
+    <!-- Main tabs -->
+    <div class="tabs" id="mainTabs">
+        <div class="tab active" data-tab="details">
+            {% if analysis.tab_flags.get('details') and analysis.tab_flags['details'].get('high', 0) > 0 %}
+                <span class="tab-badge danger"></span>
+            {% elif analysis.tab_flags.get('details') and (analysis.tab_flags['details'].get('medium', 0) > 0 or analysis.tab_flags['details'].get('low', 0) > 0) %}
+                <span class="tab-badge warning"></span>
+            {% else %}
+                <span class="tab-badge success"></span>
+            {% endif %}
+            Details
+        </div>
+        <div class="tab" data-tab="authentication">
+            {% set auth_has_fail = analysis.authentication.spf.status in ['FAIL', 'NONE'] or analysis.authentication.dkim.status in ['FAIL', 'NONE'] or analysis.authentication.dmarc.status in ['FAIL', 'NONE'] %}
+            {% set auth_has_warn = analysis.authentication.spf.status in ['SOFTFAIL'] or analysis.authentication.dkim.status in ['NEUTRAL'] or analysis.authentication.dmarc.status in ['BESTGUESSPASS'] %}
+            {% if auth_has_fail %}
+                <span class="tab-badge danger"></span>
+            {% elif auth_has_warn %}
+                <span class="tab-badge warning"></span>
+            {% else %}
+                <span class="tab-badge success"></span>
+            {% endif %}
+            Authentication
+        </div>
+        <div class="tab" data-tab="urls">
+            URLs
+            {% if analysis.urls|length > 0 %}
+                <span style="font-size: 12px; color: var(--text-muted);">({{ analysis.urls|length }})</span>
+            {% endif %}
+        </div>
+        <div class="tab" data-tab="attachments">
+            {% if analysis.tab_flags.get('attachments') and analysis.tab_flags['attachments'].get('high', 0) > 0 %}
+                <span class="tab-badge danger"></span>
+            {% endif %}
+            Attachments
+            {% if analysis.attachments|length > 0 %}
+                <span style="font-size: 12px; color: var(--text-muted);">({{ analysis.attachments|length }})</span>
+            {% endif %}
+        </div>
+        <div class="tab" data-tab="transmission">Transmission</div>
+        <div class="tab" data-tab="xheaders">X-headers</div>
+    </div>
+
+    {% if analysis.flags %}
+    <div class="flags-banner">
+        {% for flag in analysis.flags %}
+        <div class="flag-chip {{ flag.severity }}">
+            {% if flag.severity == 'high' %}⚠{% elif flag.severity == 'medium' %}⚠{% else %}ℹ{% endif %}
+            {{ flag.message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Content -->
+    <div class="content-wrapper">
+        <!-- Left panel: tab contents -->
+        <div class="panel-left">
+            <!-- Details tab -->
+            <div class="tab-content active" id="tab-details">
+                <div class="detail-table">
+                    <div class="detail-row">
+                        <div class="detail-label">
+                            {% if analysis.details.get('from_context') %}
+                                <span class="flag-icon warning">!</span>
+                            {% endif %}
+                            From
+                        </div>
+                        <div class="detail-value">{{ analysis.details.from_address }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Display name</div>
+                        <div class="detail-value sans">{{ analysis.details.display_name or 'None' }}</div>
+                    </div>
+                </div>
+                {% if analysis.details.get('from_context') %}
+                <div class="context-panel {{ analysis.details.from_context.status }}">
+                    <div class="context-title {{ analysis.details.from_context.status }}">
+                        {% if analysis.details.from_context.status == 'warning' %}⚠{% elif analysis.details.from_context.status == 'success' %}✓{% else %}✗{% endif %}
+                        {{ analysis.details.from_context.title }}
+                    </div>
+                    <div class="context-detail">{{ analysis.details.from_context.detail }}</div>
+                    <div class="context-info">
+                        <div class="context-info-label">Context</div>
+                        {{ analysis.details.from_context.context }}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="detail-table">
+                    <div class="detail-row">
+                        <div class="detail-label">Sender</div>
+                        <div class="detail-value">{{ analysis.details.sender or 'None' }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">To</div>
+                        <div class="detail-value">{{ analysis.details.to }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Cc</div>
+                        <div class="detail-value">{{ analysis.details.cc or 'None' }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">In-Reply-To</div>
+                        <div class="detail-value">{{ analysis.details.in_reply_to or 'None' }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Timestamp</div>
+                        <div class="detail-value">{{ analysis.details.date_raw }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">
+                            {% if analysis.details.reply_to and analysis.details.from_address and analysis.details.reply_to != analysis.details.from_address and analysis.details.reply_to %}
+                                {% set reply_domain = analysis.details.reply_to.split('@')[-1]|lower if '@' in analysis.details.reply_to else '' %}
+                                {% set from_domain = analysis.details.from_address.split('@')[-1]|lower if '@' in analysis.details.from_address else '' %}
+                                {% if reply_domain and from_domain and reply_domain != from_domain %}
+                                    <span class="flag-icon danger">!</span>
+                                {% else %}
+                                    Reply-To
+                                {% endif %}
+                            {% endif %}
+                            Reply-To
+                        </div>
+                        <div class="detail-value">{{ analysis.details.reply_to or 'None' }}</div>
+                    </div>
+                </div>
+                {% if analysis.details.reply_to and analysis.details.from_address and '@' in (analysis.details.reply_to or '') and '@' in analysis.details.from_address %}
+                    {% set reply_domain = analysis.details.reply_to.split('@')[-1]|lower %}
+                    {% set from_domain_val = analysis.details.from_address.split('@')[-1]|lower %}
+                    {% if reply_domain != from_domain_val %}
+                <div class="context-panel danger">
+                    <div class="context-title danger">✗ Reply-To domain mismatch</div>
+                    <div class="context-detail">The Reply-To domain ({{ reply_domain }}) differs from the From domain ({{ from_domain_val }}). Replies to this email will be sent to a different domain than the apparent sender.</div>
+                    <div class="context-info">
+                        <div class="context-info-label">Context</div>
+                        A mismatched Reply-To is a common phishing technique. The attacker spoofs or uses a legitimate-looking From address, but sets Reply-To to an address they control. Any reply from the victim goes directly to the attacker, not the apparent sender.
+                    </div>
+                </div>
+                    {% endif %}
+                {% endif %}
+                <div class="detail-table">
+                    <div class="detail-row">
+                        <div class="detail-label">Message-ID</div>
+                        <div class="detail-value">{{ analysis.details.message_id }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">
+                            {% if analysis.details.get('return_path_context') and analysis.details.return_path_context.status == 'warning' %}
+                                <span class="flag-icon warning">!</span>
+                            {% else %}
+                                <span class="flag-icon success">✓</span>
+                            {% endif %}
+                            Return-Path
+                        </div>
+                        <div class="detail-value">{{ analysis.details.return_path or 'None' }}</div>
+                    </div>
+                </div>
+                {% if analysis.details.get('return_path_context') %}
+                <div class="context-panel {{ analysis.details.return_path_context.status }}">
+                    <div class="context-title {{ analysis.details.return_path_context.status }}">
+                        {% if analysis.details.return_path_context.status == 'warning' %}⚠{% else %}✓{% endif %}
+                        {{ analysis.details.return_path_context.title }}
+                    </div>
+                    <div class="context-detail">{{ analysis.details.return_path_context.detail }}</div>
+                    <div class="context-info">
+                        <div class="context-info-label">Context</div>
+                        {{ analysis.details.return_path_context.context }}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="detail-table">
+                    <div class="detail-row">
+                        <div class="detail-label">Originating IP</div>
+                        <div class="detail-value">
+                            {% if analysis.details.originating_ip %}
+                                <span style="color: var(--accent);">{{ analysis.details.originating_ip }}</span>
+                            {% else %}
+                                None
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if analysis.details.rdns %}
+                    <div class="detail-row">
+                        <div class="detail-label">rDNS</div>
+                        <div class="detail-value">{{ analysis.details.rdns }}</div>
+                    </div>
+                    {% endif %}
+                    {% if analysis.details.importance %}
+                    <div class="detail-row">
+                        <div class="detail-label">Importance</div>
+                        <div class="detail-value sans">{{ analysis.details.importance }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Authentication tab -->
+            <div class="tab-content" id="tab-authentication">
+                <!-- SPF -->
+                <div class="auth-section">
+                    <div class="auth-header">
+                        <h3 class="auth-title">SPF</h3>
+                        {% if analysis.authentication.spf.status == 'PASS' %}
+                            <span class="badge badge-pass">✓ Pass</span>
+                        {% elif analysis.authentication.spf.status in ['FAIL', 'SOFTFAIL'] %}
+                            <span class="badge badge-fail">✗ {{ analysis.authentication.spf.status }}</span>
+                        {% elif analysis.authentication.spf.status == 'NONE' %}
+                            <span class="badge badge-fail">✗ None</span>
+                        {% else %}
+                            <span class="badge badge-neutral">{{ analysis.authentication.spf.status }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="detail-table">
+                        {% if analysis.authentication.spf.details.get('sender_ip') %}
+                        <div class="detail-row">
+                            <div class="detail-label">Originating IP</div>
+                            <div class="detail-value">
+                                <span style="color: var(--accent);">{{ analysis.authentication.spf.details.sender_ip }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if analysis.details.rdns %}
+                        <div class="detail-row">
+                            <div class="detail-label">rDNS</div>
+                            <div class="detail-value">{{ analysis.details.rdns }}</div>
+                        </div>
+                        {% endif %}
+                        <div class="detail-row">
+                            <div class="detail-label">Return-Path domain</div>
+                            <div class="detail-value">{{ analysis.details.return_path.split('@')[-1] if analysis.details.return_path and '@' in analysis.details.return_path else 'N/A' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DKIM -->
+                <div class="auth-section">
+                    <div class="auth-header">
+                        <h3 class="auth-title">DKIM</h3>
+                        {% if analysis.authentication.dkim.status == 'PASS' %}
+                            <span class="badge badge-pass">✓ Pass</span>
+                        {% elif analysis.authentication.dkim.status == 'FAIL' %}
+                            <span class="badge badge-fail">✗ Fail</span>
+                        {% elif analysis.authentication.dkim.status == 'NEUTRAL' %}
+                            <span class="badge badge-warn">! Neutral</span>
+                        {% elif analysis.authentication.dkim.status == 'NONE' %}
+                            <span class="badge badge-fail">✗ None</span>
+                        {% else %}
+                            <span class="badge badge-neutral">{{ analysis.authentication.dkim.status }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="detail-table">
+                        {% if analysis.authentication.dkim.details.get('signing_domain') %}
+                        <div class="detail-row">
+                            <div class="detail-label">Signing domain</div>
+                            <div class="detail-value">{{ analysis.authentication.dkim.details.signing_domain }}</div>
+                        </div>
+                        {% endif %}
+                        {% if analysis.authentication.dkim.details.get('selector') %}
+                        <div class="detail-row">
+                            <div class="detail-label">Selector</div>
+                            <div class="detail-value">{{ analysis.authentication.dkim.details.selector }}</div>
+                        </div>
+                        {% endif %}
+                        {% if analysis.authentication.dkim.details.get('algorithm') %}
+                        <div class="detail-row">
+                            <div class="detail-label">Algorithm</div>
+                            <div class="detail-value">{{ analysis.authentication.dkim.details.algorithm }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if analysis.authentication.dkim.details.get('note') %}
+                    <div class="context-panel warning" style="margin: 12px 0 0;">
+                        <div class="context-title warning">⚠ Relay-signed DKIM</div>
+                        <div class="context-detail">{{ analysis.authentication.dkim.details.note }}</div>
+                        <div class="context-info">
+                            <div class="context-info-label">Context</div>
+                            A DKIM PASS only confirms the email was signed by the signing domain, not necessarily the sender's domain. When the signing domain differs from the From domain, the DKIM signature was likely added by a mail relay or hosting provider, not the original sender.
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- DMARC -->
+                <div class="auth-section">
+                    <div class="auth-header">
+                        <h3 class="auth-title">DMARC</h3>
+                        {% if analysis.authentication.dmarc.status == 'PASS' %}
+                            <span class="badge badge-pass">✓ Pass</span>
+                        {% elif analysis.authentication.dmarc.status == 'FAIL' %}
+                            <span class="badge badge-fail">✗ Fail</span>
+                        {% elif analysis.authentication.dmarc.status == 'BESTGUESSPASS' %}
+                            <span class="badge badge-warn">! BestGuessPass</span>
+                        {% elif analysis.authentication.dmarc.status == 'NONE' %}
+                            <span class="badge badge-fail">✗ None</span>
+                        {% else %}
+                            <span class="badge badge-neutral">{{ analysis.authentication.dmarc.status }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="detail-table">
+                        <div class="detail-row">
+                            <div class="detail-label">From domain</div>
+                            <div class="detail-value">{{ analysis.details.from_address.split('@')[-1] if '@' in analysis.details.from_address else 'N/A' }}</div>
+                        </div>
+                        {% if analysis.authentication.dmarc.details.get('action') %}
+                        <div class="detail-row">
+                            <div class="detail-label">Action</div>
+                            <div class="detail-value sans">{{ analysis.authentication.dmarc.details.action }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- URLs tab -->
+            <div class="tab-content" id="tab-urls">
+                {% if analysis.urls %}
+                    {% for url in analysis.urls %}
+                    <div class="url-item">
+                        <span class="url-index">{{ loop.index }}</span>
+                        <span class="url-text">{{ url }}</span>
+                        <button class="copy-btn" onclick="copyText('{{ url }}')">Copy</button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">No URLs found in this email.</div>
+                {% endif %}
+            </div>
+
+            <!-- Attachments tab -->
+            <div class="tab-content" id="tab-attachments">
+                {% if analysis.attachments %}
+                    {% for att in analysis.attachments %}
+                    <div class="attachment-card">
+                        <div class="attachment-header">
+                            {% if att.ole_indicators or att.file_type in ['EXE','SCR','BAT','CMD','DOCM','XLSM','PPTM'] %}
+                                <span class="flag-icon danger">!</span>
+                            {% else %}
+                                <span style="font-size: 16px;">📎</span>
+                            {% endif %}
+                            <span>({{ loop.index }})</span>
+                            <span>{{ att.filename }}</span>
+                        </div>
+                        <div class="attachment-body">
+                            <div class="detail-row">
+                                <div class="detail-label">File name</div>
+                                <div class="detail-value">{{ att.filename }}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">File size</div>
+                                <div class="detail-value sans">{{ att.size_formatted }}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">File type</div>
+                                <div class="detail-value sans">{{ att.file_type }}{% if att.type_mismatch %} <span class="badge badge-fail">SPOOFED</span>{% endif %}</div>
+                            </div>
+                            {% if att.true_type %}
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    {% if att.type_mismatch %}<span class="flag-icon danger">!</span>{% else %}<span class="flag-icon success">✓</span>{% endif %}
+                                    Actual type
+                                </div>
+                                <div class="detail-value sans">{{ att.true_type }}</div>
+                            </div>
+                            {% endif %}
+                            {% if att.type_mismatch %}
+                            </div>
+                            <div class="context-panel danger" style="margin: 0 16px 12px;">
+                                <div class="context-title danger">✗ File type mismatch detected</div>
+                                <div class="context-detail">The file extension (.{{ att.file_type|lower }}) does not match the actual file content ({{ att.true_type }}). This is a common technique to trick users into opening malicious files.</div>
+                                <div class="context-info">
+                                    <div class="context-info-label">Context</div>
+                                    Attackers rename files to use trusted extensions (like .pdf or .docx) while the actual content is a different file type. Always verify the true file type using magic byte analysis before opening attachments.
+                                </div>
+                            </div>
+                            <div class="attachment-body">
+                            {% endif %}
+                            <div class="detail-row">
+                                <div class="detail-label">MD5</div>
+                                <div class="detail-value">{{ att.md5 }} <button class="copy-btn" onclick="copyText('{{ att.md5 }}')">Copy</button></div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">SHA-1</div>
+                                <div class="detail-value">{{ att.sha1 }} <button class="copy-btn" onclick="copyText('{{ att.sha1 }}')">Copy</button></div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">SHA-256</div>
+                                <div class="detail-value">{{ att.sha256 }} <button class="copy-btn" onclick="copyText('{{ att.sha256 }}')">Copy</button></div>
+                            </div>
+                            {% if att.ole_indicators %}
+                            <div class="detail-row">
+                                <div class="detail-label">OLE analysis</div>
+                                <div class="detail-value">
+                                    {% for indicator in att.ole_indicators %}
+                                        <span class="badge badge-macro">{{ indicator }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">No attachments found in this email.</div>
+                {% endif %}
+            </div>
+
+            <!-- Transmission tab -->
+            <div class="tab-content" id="tab-transmission">
+                <div class="timeline">
+                    {% for hop in analysis.transmission %}
+                    <div class="hop">
+                        <div class="hop-line">
+                            <div class="hop-dot"></div>
+                            {% if not loop.last %}<div class="hop-connector"></div>{% endif %}
+                        </div>
+                        <div class="hop-content">
+                            <div class="hop-label">Hop {{ hop.hop_number }}</div>
+                            <div class="hop-time">{{ hop.get('timestamp_utc', hop.get('timestamp_raw', 'Unknown')) }}</div>
+                            {% if hop.get('from_server') %}
+                            <div class="hop-detail">
+                                <span class="hop-detail-label">Received from</span>
+                                <span class="hop-detail-value">{{ hop.from_server }}{% if hop.get('from_ip') %} ({{ hop.from_ip }}){% endif %}</span>
+                            </div>
+                            {% endif %}
+                            {% if hop.get('by_server') %}
+                            <div class="hop-detail">
+                                <span class="hop-detail-label">Received by</span>
+                                <span class="hop-detail-value">{{ hop.by_server }}{% if hop.get('by_ip') %} ({{ hop.by_ip }}){% endif %}</span>
+                            </div>
+                            {% endif %}
+                            {% if hop.get('protocol') %}
+                            <div class="hop-detail">
+                                <span class="hop-detail-label">With</span>
+                                <span class="hop-detail-value">{{ hop.protocol }}</span>
+                            </div>
+                            {% endif %}
+                            {% if hop.get('delay_seconds') is not none %}
+                            <span class="hop-delay {% if hop.delay_seconds > 10 %}slow{% endif %}">
+                                {% if hop.delay_seconds >= 0 %}+{{ hop.delay_seconds|int }}s delay{% else %}{{ hop.delay_seconds|int }}s{% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    {% if analysis.transmission %}
+                    <div class="hop">
+                        <div class="hop-line">
+                            <div class="hop-dot" style="background: var(--success);"></div>
+                        </div>
+                        <div class="hop-content">
+                            <div class="hop-label" style="color: var(--success);">Recipient mailbox</div>
+                            <div class="hop-time">{{ analysis.details.to }}</div>
+                        </div>
+                    </div>
+                    {% else %}
+                        <div class="empty-state">No transmission data available.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- X-headers tab -->
+            <div class="tab-content" id="tab-xheaders">
+                <div class="xheader-search">
+                    <input type="text" placeholder="Search X-headers..." id="xheaderSearch" oninput="filterXHeaders()">
+                </div>
+                <div class="xheader-count" id="xheaderCount">{{ analysis.xheaders|length }} results</div>
+                <div id="xheaderList">
+                    {% for xh in analysis.xheaders %}
+                    <div class="xheader-row" data-name="{{ xh.name|lower }}" data-value="{{ xh.value|lower if xh.value else '' }}">
+                        <div class="xheader-name">{{ xh.name }}</div>
+                        <div class="xheader-value">{{ xh.value }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if not analysis.xheaders %}
+                    <div class="empty-state">No X-headers found.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right panel: email body -->
+        <div class="panel-right">
+            <div class="body-tabs" id="bodyTabs">
+                <div class="body-tab active" data-body="rendered">Rendered</div>
+                <div class="body-tab" data-body="html">HTML</div>
+                <div class="body-tab" data-body="plaintext">Plaintext</div>
+                <div class="body-tab" data-body="source">Source</div>
+            </div>
+            <div class="body-content active" id="body-rendered">
+                {% if analysis.body.html %}
+                    <iframe id="renderedFrame" sandbox="allow-same-origin" style="width:100%; border:none; min-height: 200px; background: #fff; border-radius: 6px;"></iframe>
+                {% elif analysis.body.plaintext %}
+                    <div class="body-rendered">{{ analysis.body.plaintext | replace('\n', '<br>') | safe }}</div>
+                {% else %}
+                    <div class="body-rendered"><em style="color: #999;">No displayable body content.</em></div>
+                {% endif %}
+            </div>
+            <div class="body-content" id="body-html">
+                <textarea class="code-view" readonly>{% if analysis.body.html_raw %}{{ analysis.body.html_raw }}{% else %}No HTML content.{% endif %}</textarea>
+            </div>
+            <div class="body-content" id="body-plaintext">
+                <textarea class="code-view" readonly>{% if analysis.body.plaintext %}{{ analysis.body.plaintext }}{% else %}No plaintext content.{% endif %}</textarea>
+            </div>
+            <div class="body-content" id="body-source">
+                <textarea class="code-view" readonly>{% if analysis.body.source %}{{ analysis.body.source[:50000] }}{% else %}No source available.{% endif %}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Populate the sandboxed iframe for rendered view
+        {% if analysis.body.html %}
+        (function() {
+            var frame = document.getElementById('renderedFrame');
+            var doc = frame.contentDocument || frame.contentWindow.document;
+            doc.open();
+            doc.write({{ analysis.body.html | tojson }});
+            doc.close();
+            // Auto-resize iframe to content height
+            function resizeFrame() {
+                try {
+                    frame.style.height = doc.body.scrollHeight + 40 + 'px';
+                } catch(e) {}
+            }
+            frame.onload = resizeFrame;
+            setTimeout(resizeFrame, 500);
+            setTimeout(resizeFrame, 1500);
+        })();
+        {% endif %}
+        // Main tabs
+        document.querySelectorAll('#mainTabs .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('#mainTabs .tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Body tabs
+        document.querySelectorAll('#bodyTabs .body-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('#bodyTabs .body-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.body-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('body-' + tab.dataset.body).classList.add('active');
+            });
+        });
+
+        // X-header search
+        function filterXHeaders() {
+            const query = document.getElementById('xheaderSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#xheaderList .xheader-row');
+            let visible = 0;
+            rows.forEach(row => {
+                const name = row.dataset.name;
+                const value = row.dataset.value;
+                if (name.includes(query) || value.includes(query)) {
+                    row.style.display = '';
+                    visible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            document.getElementById('xheaderCount').textContent = visible + ' results';
+        }
+
+        // Copy to clipboard
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Brief visual feedback could be added here
+            });
+        }
+    </script>
+</body>
+</html>
