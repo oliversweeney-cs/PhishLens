@@ -23,9 +23,8 @@ Tools like [PhishTool](https://phishtool.com/) are excellent for email analysis,
 
 ## Screenshots
 
-<!-- Add your own screenshots here -->
-<!-- ![Upload Page](screenshots/upload.png) -->
-<!-- ![Analysis View](screenshots/analysis.png) -->
+![Upload Page](screenshots/Upload.png)
+![Analysis View](screenshots/Analysis.png)
 
 ## Installation
 
