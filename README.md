@@ -38,7 +38,7 @@ Tools like [PhishTool](https://phishtool.com/) are excellent for email analysis,
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/PhishLens.git
+git clone https://github.com/oliversweeney-cs/PhishLens.git
 cd PhishLens
 
 # Install dependencies
@@ -94,7 +94,7 @@ PhishLens/
 
 ## Context
 
-This project was built as part of my cybersecurity study journey while working through the [MYDFIR SOC Analyst Accelerator](https://www.mydfir.com/) program. The goal was to create a practical, local-first tool that mirrors the workflow of commercial phishing analysis platforms, while keeping sensitive email data off third-party servers.
+This project was built as part of my cybersecurity study journey while working through the [MYDFIR SOC Analyst Accelerator](https://www.skool.com/mydfir) program. The goal was to create a practical, local-first tool that mirrors the workflow of commercial phishing analysis platforms, while keeping sensitive email data off third-party servers.
 
 ## License
 
